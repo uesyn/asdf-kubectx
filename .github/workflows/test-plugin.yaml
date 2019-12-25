@@ -1,0 +1,30 @@
+name: test
+
+on: 
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: 'v1.17.0'
+        id: install
+      - name: add path
+        run: echo "::add-path::${KUBECTL_PATH%/*}"
+        env:
+          KUBECTL_PATH: ${{ steps.install.outputs.kubectl-path }}
+      - name: asdf_plugin_test
+        uses: asdf-vm/actions/plugin-test@v1.0.0
+        with:
+          command: "kubectx -h"
+        env:
+          GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
